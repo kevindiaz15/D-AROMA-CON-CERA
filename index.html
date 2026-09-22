@@ -241,10 +241,15 @@ section{scroll-margin-top:90px;position:relative;}
 /* CATEGORIAS                                                 */
 /* ========================================================= */
 .section-title{text-align:center;max-width:640px;margin:0 auto 2.6rem;}
-.section-title .eyebrow{
-  display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.24em;
-  text-transform:uppercase;color:var(--magenta);margin-bottom:.6rem;
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.45rem;
+  background:#fff;border:1px solid rgba(181,70,213,.22);
+  font-size:.78rem;font-weight:600;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--magenta);margin-bottom:.8rem;
+  padding:.42rem 1rem;border-radius:99px;
+  box-shadow:0 4px 12px rgba(181,70,213,.08);
 }
+.eyebrow i{color:var(--fucsia);font-size:.72rem;}
 .section-title h2{font-size:clamp(1.7rem,3vw,2.4rem);margin-bottom:.6rem;}
 .section-title p{color:#5a5575;font-size:.98rem;}
 
@@ -719,6 +724,10 @@ section{scroll-margin-top:90px;position:relative;}
 
 /* Móvil: columna con línea vertical */
 @media (max-width:640px){
+  .howto-row{grid-template-columns:1fr;gap:1.6rem;}
+  .howto-row-b{margin-top:1.4rem;}
+  .howto-row-a .howto-cell:not(:last-child)::after,
+  .howto-row-b .howto-cell:not(:first-child)::before{display:none;}
   .howto-snake::before{
     content:'';position:absolute;left:24px;top:6px;bottom:6px;
     width:0;border-left:3px dashed rgba(181,70,213,.4);
@@ -922,7 +931,7 @@ section{scroll-margin-top:90px;position:relative;}
 <section class="categories" id="categorias">
   <div class="container">
     <div class="section-title reveal">
-      <span class="eyebrow">Categorías</span>
+      <span class="eyebrow"><i class="fa-solid fa-layer-group"></i>Categorías</span>
       <h2>Encuentra tu vela ideal</h2>
       <p>Toca una categoría para explorar el catálogo o sigue bajando para descubrir todos nuestros aromas.</p>
     </div>
@@ -936,7 +945,7 @@ section{scroll-margin-top:90px;position:relative;}
 <section class="catalog" id="catalogo">
   <div class="container">
     <div class="section-title reveal">
-      <span class="eyebrow">Catálogo</span>
+      <span class="eyebrow"><i class="fa-solid fa-candles"></i>Catálogo</span>
       <h2>Nuestras velas</h2>
       <p>Cada pieza se elabora a mano con cera de calidad, aromas seleccionados y detalles únicos.</p>
     </div>
@@ -1092,7 +1101,7 @@ section{scroll-margin-top:90px;position:relative;}
     <div class="quote-grid">
       <div class="quote-info reveal">
         <div class="section-title" style="text-align:left;margin-bottom:1.4rem;">
-          <span class="eyebrow">Cotizaciones</span>
+          <span class="eyebrow"><i class="fa-solid fa-file-invoice-dollar"></i>Cotizaciones</span>
           <h2>Solicita una cotización</h2>
         </div>
         <p>Perfecta para bodas, cumpleaños, bautizos, eventos, empresas, regalos corporativos, recordatorios, grandes cantidades y velas personalizadas.</p>
@@ -1208,7 +1217,7 @@ section{scroll-margin-top:90px;position:relative;}
 <section class="social" id="redes">
   <div class="container">
     <div class="section-title reveal">
-      <span class="eyebrow">Redes sociales</span>
+      <span class="eyebrow"><i class="fa-solid fa-share-nodes"></i>Redes sociales</span>
       <h2>Síguenos y descubre nuestro mundo de aromas</h2>
       <p>Compartimos procesos, novedades y pedidos especiales. URLs de ejemplo, reemplázalas por las tuyas.</p>
     </div>
@@ -1247,7 +1256,7 @@ section{scroll-margin-top:90px;position:relative;}
       </div>
       <div class="about-copy reveal">
         <div style="margin-bottom:1.2rem;">
-          <span class="eyebrow" style="display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;color:var(--magenta);">Nosotros</span>
+          <span class="eyebrow"><i class="fa-solid fa-heart"></i>Nosotros</span>
         </div>
         <h2>Más que una vela, un momento.</h2>
         <p>En <b>D'AROMA CON CERA</b> creemos que una vela puede transformar un espacio, despertar un recuerdo y convertir un momento cotidiano en algo especial.</p>
@@ -1270,7 +1279,7 @@ section{scroll-margin-top:90px;position:relative;}
     <div class="contact-grid">
       <div class="reveal">
         <div class="section-title" style="text-align:left;">
-          <span class="eyebrow">Contacto</span>
+          <span class="eyebrow"><i class="fa-solid fa-envelope-open-text"></i>Contacto</span>
           <h2>Hablemos de tu próximo momento</h2>
           <p>Resolvemos dudas, recibimos pedidos personalizados y hacemos realidad tus ideas en cera.</p>
         </div>
