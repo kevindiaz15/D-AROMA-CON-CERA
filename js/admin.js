@@ -8,6 +8,11 @@ let editandoId = null;
 let fotoPendiente = null;   /* File a subir (o null) */
 let quitarFoto = false;
 
+let solicitudes = [];       /* Cotizaciones y pedidos recibidos */
+let solTipo = 'cotizaciones';
+let solFiltro = '';
+let solBusqueda = '';
+
 const CATS = [
   ['aromaticas','Aromáticas'],['decorativas','Decorativas'],['personalizadas','Personalizadas'],
   ['regalos','Regalos'],['eventos','Eventos'],['combos','Combos']
@@ -20,6 +25,18 @@ function uid(){
   return 'f' + Date.now() + Math.floor(Math.random()*1e6);
 }
 const fmtCOP = n => (n==null||n==='') ? 'Consultar' : '$' + Number(n).toLocaleString('es-CO');
+
+/* Escapa HTML para pintar contenido de la BD con seguridad */
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* Link de WhatsApp del cliente (asume Colombia si es número local 3xx...) */
+function waNum(n){
+  let dig = String(n||'').replace(/[^0-9]/g,'');
+  if(dig.length===10 && dig.startsWith('3')) dig = '57'+dig;
+  return 'https://wa.me/'+dig;
+}
 
 /* Atributo de evento seguro: delimitado con comilla simple, JSON con dobles */
 function attrEvt(evt, call){
@@ -67,6 +84,7 @@ function mostrarDash(){
   $('loginView').classList.add('hidden');
   $('dashView').classList.remove('hidden');
   cargarProductos();
+  cargarSolicitudes();
 }
 
 /* ---------- Carga y pintado ---------- */
@@ -135,6 +153,169 @@ function renderLista(){
 function catNombre(k){
   const f = CATS.find(c=>c[0]===k);
   return f ? f[1] : k;
+}
+
+/* =============================================================== */
+/* SOLICITUDES (cotizaciones y pedidos)                            */
+/* =============================================================== */
+
+async function cargarSolicitudes(){
+  const { data, error } = await sb
+    .from('solicitudes')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if(error){ console.warn('Error cargando solicitudes', error); return; }
+  solicitudes = data || [];
+  actualizarBadgesSol();
+  renderSolicitudes();
+}
+
+function actualizarBadgesSol(){
+  const nC = solicitudes.filter(s=>s.tipo==='cotizacion' && s.estado==='nueva').length;
+  const nP = solicitudes.filter(s=>s.tipo==='pedido' && s.estado==='nueva').length;
+  pintarBadge('badgeCotizaciones', nC);
+  pintarBadge('badgePedidos', nP);
+}
+function pintarBadge(id, n){
+  const b = $(id);
+  b.textContent = n;
+  b.classList.toggle('show', n>0);
+}
+
+function setVista(v){
+  const esSol = v === 'solicitudes';
+  $('productosView').classList.toggle('hidden', esSol);
+  $('solicitudesView').classList.toggle('hidden', !esSol);
+  $('btnNavProductos').classList.toggle('active', !esSol);
+  $('btnNavCotizaciones').classList.toggle('active', esSol && solTipo==='cotizaciones');
+  $('btnNavPedidos').classList.toggle('active', esSol && solTipo==='pedidos');
+  if(esSol) renderSolicitudes();
+}
+function setTipo(t){
+  solTipo = t;
+  $('solTitulo').textContent = t==='cotizaciones' ? 'Cotizaciones' : 'Pedidos';
+  $('solSubtitulo').textContent = t==='cotizaciones'
+    ? 'Solicitudes de cotización recibidas desde la tienda'
+    : 'Pedidos solicitados desde la tienda';
+  setVista('solicitudes');
+}
+
+function estadoLabel(e){ return ({nueva:'Nueva',vista:'Vista',atendida:'Atendida',cerrada:'Cerrada'})[e]||e; }
+
+function solicitudesFiltradas(){
+  return solicitudes.filter(s=>{
+    if(s.tipo !== (solTipo==='cotizaciones'?'cotizacion':'pedido')) return false;
+    if(solFiltro && s.estado !== solFiltro) return false;
+    if(solBusqueda){
+      const hay = ((s.nombre||'')+' '+(s.whatsapp||'')+' '+(s.correo||'')+' '+(s.mensaje_wa||'')).toLowerCase();
+      if(!hay.includes(solBusqueda)) return false;
+    }
+    return true;
+  });
+}
+
+function renderSolicitudes(){
+  const list = solicitudesFiltradas();
+  $('solEmpty').classList.toggle('hidden', list.length>0);
+  $('solList').innerHTML = list.map(solCard).join('');
+}
+
+function detCotizacion(d){
+  const pares = [
+    ['Evento', d.evento], ['Fecha', d.fecha], ['Cantidad aprox.', d.cantidad_aprox],
+    ['Tipo de vela', d.tipo_vela], ['Aroma', d.aroma], ['Color', d.color],
+    ['Personalización', d.personalizacion], ['Presupuesto', d.presupuesto], ['Mensaje', d.mensaje]
+  ].filter(([,v])=> v != null && v !== '');
+  return '<div class="sol-det">'+pares.map(([k,v])=>
+    '<div class="sol-f"><small>'+esc(k)+'</small><span>'+esc(v)+'</span></div>').join('')+'</div>';
+}
+
+function detPedido(d){
+  const items = Array.isArray(d.items) ? d.items : [];
+  const lineas = items.map(it=>{
+    const sub = it.subtotal==null ? 'Consultar' : fmtCOP(it.subtotal);
+    return '<div class="rl"><span>'+esc(it.nombre)+(it.present?' <em>· '+esc(it.present)+'</em>':'')+' × '+it.cantidad+'</span><span>'+sub+'</span></div>';
+  }).join('');
+  const total = d.total==null ? 'Consultar' : fmtCOP(d.total);
+  const pares = [
+    ['Fecha deseada', d.fecha_deseada], ['Ciudad', d.ciudad], ['Dirección', d.direccion]
+  ].filter(([,v])=> v != null && v !== '');
+  return '<div class="sol-ped">'+
+    '<div class="sol-items">'+lineas+'<div class="rl total"><span>Total estimado</span><b>'+total+'</b></div></div>'+
+    (pares.length ? '<div class="sol-det">'+pares.map(([k,v])=>
+      '<div class="sol-f"><small>'+esc(k)+'</small><span>'+esc(v)+'</span></div>').join('')+'</div>' : '')+
+  '</div>';
+}
+
+function solCard(s){
+  const d = (s.detalles && typeof s.detalles==='object') ? s.detalles : {};
+  const fechaTxt = new Date(s.created_at).toLocaleString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const esCot = s.tipo==='cotizacion';
+
+  const estados = ['nueva','vista','atendida','cerrada'];
+  const contacto =
+    '<div class="sol-contacto">'+
+      '<span class="sol-nombre"><i class="fa-solid fa-user"></i>'+esc(s.nombre)+'</span>'+
+      (s.whatsapp ? '<a href="'+waNum(s.whatsapp)+'" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i>'+esc(s.whatsapp)+'</a>' : '')+
+      (s.correo ? '<a href="mailto:'+esc(s.correo)+'"><i class="fa-solid fa-envelope"></i>'+esc(s.correo)+'</a>' : '')+
+    '</div>';
+
+  return '<div class="sol-card">'+
+    '<div class="sol-head">'+
+      '<div class="sol-left">'+
+        '<span class="sol-tipo '+(esCot?'ctz':'ped')+'"><i class="fa-solid '+(esCot?'fa-file-invoice-dollar':'fa-bag-shopping')+'"></i>'+(esCot?'Cotización':'Pedido')+'</span>'+
+        '<span class="sol-date"><i class="fa-regular fa-clock"></i>'+fechaTxt+'</span>'+
+      '</div>'+
+      '<div class="sol-head-acc">'+
+        '<select class="sol-estado '+s.estado+'" title="Cambiar estado" '+attrEvt('onchange','cambiarEstado('+JSON.stringify(String(s.id))+',this.value)')+'>'+
+          estados.map(e=>'<option value="'+e+'"'+(s.estado===e?' selected':'')+'>'+estadoLabel(e)+'</option>').join('')+
+        '</select>'+
+        '<button class="acc-btn del" title="Eliminar" '+attrClick('eliminarSolicitud('+JSON.stringify(String(s.id))+')')+'><i class="fa-solid fa-trash-can"></i></button>'+
+      '</div>'+
+    '</div>'+
+    contacto+
+    (esCot ? detCotizacion(d) : detPedido(d))+
+    (s.mensaje_wa ? '<div class="sol-msg"><pre>'+esc(s.mensaje_wa)+'</pre></div>' : '')+
+    '<div class="sol-acc">'+
+      (s.whatsapp ? '<a class="btn small wa" href="'+waNum(s.whatsapp)+'" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i> Hablar por WhatsApp</a>' : '')+
+      (s.mensaje_wa ? '<button type="button" class="btn small ghost" '+attrClick('copiarMensaje('+JSON.stringify(String(s.id))+')')+'><i class="fa-regular fa-copy"></i> Copiar mensaje</button>' : '')+
+    '</div>'+
+  '</div>';
+}
+
+async function cambiarEstado(id, estado){
+  const { error } = await sb.from('solicitudes').update({ estado }).eq('id', id);
+  if(error){ toast('No se pudo actualizar el estado','error'); renderSolicitudes(); return; }
+  const s = solicitudes.find(x=>String(x.id)===String(id));
+  if(s) s.estado = estado;
+  actualizarBadgesSol();
+  toast('Estado actualizado: '+estadoLabel(estado));
+}
+
+async function eliminarSolicitud(id){
+  if(!confirm('¿Eliminar esta solicitud definitivamente?')) return;
+  const { error } = await sb.from('solicitudes').delete().eq('id', id);
+  if(error){ toast('No se pudo eliminar','error'); return; }
+  solicitudes = solicitudes.filter(x=>String(x.id)!==String(id));
+  actualizarBadgesSol();
+  renderSolicitudes();
+  toast('Solicitud eliminada');
+}
+
+async function copiarMensaje(id){
+  const s = solicitudes.find(x=>String(x.id)===String(id));
+  if(!s || !s.mensaje_wa) return;
+  try{
+    await navigator.clipboard.writeText(s.mensaje_wa);
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = s.mensaje_wa;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+  toast('Mensaje copiado al portapapeles');
 }
 
 /* ---------- Acciones ---------- */
@@ -317,6 +498,13 @@ $('btnNuevo').addEventListener('click', ()=> abrirForm());
 $('productForm').addEventListener('submit', guardarProducto);
 $('admSearch').addEventListener('input', renderLista);
 $('admFiltroCat').addEventListener('change', renderLista);
+
+/* Navegación: productos / cotizaciones / pedidos */
+$('btnNavProductos').addEventListener('click', ()=> setVista('productos'));
+$('btnNavCotizaciones').addEventListener('click', ()=> setTipo('cotizaciones'));
+$('btnNavPedidos').addEventListener('click', ()=> setTipo('pedidos'));
+$('solFiltroEstado').addEventListener('change', e=>{ solFiltro = e.target.value; renderSolicitudes(); });
+$('solSearch').addEventListener('input', e=>{ solBusqueda = e.target.value.trim().toLowerCase(); renderSolicitudes(); });
 
 /* Foto: clic y arrastrar */
 $('fotoDrop').addEventListener('click', ()=> $('fFoto').click());

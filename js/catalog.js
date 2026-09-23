@@ -65,6 +65,16 @@ async function cargarProductos(){
   return data || [];
 }
 
+/* Guarda la solicitud en Supabase sin bloquear el flujo de WhatsApp */
+function registrarSolicitud(tipo, nombre, whatsapp, correo, detalles, mensaje_wa){
+  if(!sb) return;
+  sb.from('solicitudes').insert([{ tipo, nombre, whatsapp, correo, detalles, mensaje_wa, estado:'nueva' }])
+    .then(r=>{
+      if(r.error) console.warn('No se pudo guardar la solicitud en Supabase:', r.error.message);
+    })
+    .catch(e=>console.warn('No se pudo guardar la solicitud en Supabase:', e));
+}
+
 /* =============================================================== */
 /* CATEGORÍAS                                                      */
 /* =============================================================== */
@@ -493,6 +503,20 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
 
   document.getElementById('waOrderBtn').href = PREFIJO_WA+'?text='+encodeURIComponent(msg);
 
+  registrarSolicitud(
+    'pedido', nombre,
+    (document.getElementById('oWhats').value||'').trim(),
+    (document.getElementById('oCorreo').value||'').trim(),
+    {
+      fecha_deseada: fechaFmt,
+      ciudad: document.getElementById('oCiudad').value.trim(),
+      direccion: document.getElementById('oDireccion').value.trim(),
+      items: comp.map(l=>({ nombre: l.name, present: l.present||'', cantidad: l.qty, subtotal: subtotalLinea(l) })),
+      total: hayConsultar ? null : sub
+    },
+    msg
+  );
+
   document.getElementById('orderFormView').style.display='none';
   document.getElementById('orderSuccess').classList.add('show');
   carrito = [];
@@ -531,6 +555,25 @@ document.getElementById('quoteForm').addEventListener('submit', function(e){
     msg += '\n\nMensaje: '+document.getElementById('qMensaje').value.trim();
   }
   document.getElementById('waQuoteBtn').href = PREFIJO_WA+'?text='+encodeURIComponent(msg);
+
+  registrarSolicitud(
+    'cotizacion',
+    document.getElementById('qNombre').value.trim(),
+    (document.getElementById('qWhats').value||'').trim(),
+    (document.getElementById('qCorreo').value||'').trim(),
+    {
+      evento: document.getElementById('qEvento').value,
+      fecha: document.getElementById('qFecha').value,
+      cantidad_aprox: document.getElementById('qCantidad').value,
+      tipo_vela: document.getElementById('qTipoVela').value || '',
+      aroma: document.getElementById('qAroma').value || '',
+      color: document.getElementById('qColor').value || '',
+      personalizacion: document.getElementById('qPersonalizacion').value || '',
+      presupuesto: document.getElementById('qPresupuesto').value || '',
+      mensaje: document.getElementById('qMensaje').value.trim()
+    },
+    msg
+  );
 
   this.style.display='none';
   document.getElementById('quoteSuccess').classList.add('show');

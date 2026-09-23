@@ -2,6 +2,7 @@
 -- D'AROMA CON CERA · Configuración de Supabase
 -- Pega este script completo en: Dashboard → SQL Editor → New query → Run
 -- También puedes pegar línea por línea si lo prefieres.
+-- Es RE-EJECUTABLE (no da error si ya correste antes).
 -- Luego crea tu usuario admin en Dashboard → Authentication → Users → Add user
 -- ================================================================
 
@@ -35,21 +36,25 @@ create index if not exists products_orden_idx on public.products (orden, created
 alter table public.products enable row level security;
 
 -- Lectura pública: cualquiera puede ver los productos (la tienda)
+drop policy if exists "products_lectura_publica" on public.products;
 create policy "products_lectura_publica"
   on public.products for select
   using (true);
 
 -- Solo el admin autenticado puede crear
+drop policy if exists "products_admin_insert" on public.products;
 create policy "products_admin_insert"
   on public.products for insert
   with check (auth.role() = 'authenticated');
 
 -- Solo el admin autenticado puede editar
+drop policy if exists "products_admin_update" on public.products;
 create policy "products_admin_update"
   on public.products for update
   using (auth.role() = 'authenticated');
 
 -- Solo el admin autenticado puede eliminar
+drop policy if exists "products_admin_delete" on public.products;
 create policy "products_admin_delete"
   on public.products for delete
   using (auth.role() = 'authenticated');
@@ -60,24 +65,76 @@ values ('productos', 'productos', true, 5242880, array['image/png','image/jpeg',
 on conflict (id) do nothing;
 
 -- Fotos: todos pueden verlas
+drop policy if exists "storage_productos_lectura" on storage.objects;
 create policy "storage_productos_lectura"
   on storage.objects for select
   using (bucket_id = 'productos');
 
 -- Fotos: solo el admin autenticado puede subir
+drop policy if exists "storage_productos_insert" on storage.objects;
 create policy "storage_productos_insert"
   on storage.objects for insert
   with check (bucket_id = 'productos' and auth.role() = 'authenticated');
 
 -- Fotos: solo el admin autenticado puede modificar
+drop policy if exists "storage_productos_update" on storage.objects;
 create policy "storage_productos_update"
   on storage.objects for update
   using (bucket_id = 'productos' and auth.role() = 'authenticated');
 
 -- Fotos: solo el admin autenticado puede eliminar
+drop policy if exists "storage_productos_delete" on storage.objects;
 create policy "storage_productos_delete"
   on storage.objects for delete
   using (bucket_id = 'productos' and auth.role() = 'authenticated');
+
+-- ================================================================
+-- 5) SOLICITUDES (cotizaciones y pedidos enviados desde la tienda)
+-- ================================================================
+
+-- Tabla de solicitudes
+create table if not exists public.solicitudes (
+  id uuid primary key default gen_random_uuid(),
+  tipo text not null check (tipo in ('cotizacion','pedido')),
+  nombre text not null,
+  whatsapp text default '',
+  correo text default '',
+  detalles jsonb default '{}'::jsonb,
+  mensaje_wa text default '',
+  estado text default 'nueva' check (estado in ('nueva','vista','atendida','cerrada')),
+  created_at timestamptz default now()
+);
+
+-- Índice para listar por tipo, estado y fecha
+create index if not exists solicitudes_idx on public.solicitudes (tipo, estado, created_at desc);
+
+-- Seguridad: RLS
+alter table public.solicitudes enable row level security;
+
+-- INSERT público: los clientes de la tienda envían su solicitud
+-- (solo puede crearse como 'nueva' y con tipo válido)
+drop policy if exists "solicitudes_insert_publico" on public.solicitudes;
+create policy "solicitudes_insert_publico"
+  on public.solicitudes for insert
+  with check (tipo in ('cotizacion','pedido') and estado = 'nueva' and nombre <> '');
+
+-- SELECT: solo el admin autenticado
+drop policy if exists "solicitudes_admin_select" on public.solicitudes;
+create policy "solicitudes_admin_select"
+  on public.solicitudes for select
+  using (auth.role() = 'authenticated');
+
+-- UPDATE: solo el admin autenticado (para cambiar el estado)
+drop policy if exists "solicitudes_admin_update" on public.solicitudes;
+create policy "solicitudes_admin_update"
+  on public.solicitudes for update
+  using (auth.role() = 'authenticated');
+
+-- DELETE: solo el admin autenticado
+drop policy if exists "solicitudes_admin_delete" on public.solicitudes;
+create policy "solicitudes_admin_delete"
+  on public.solicitudes for delete
+  using (auth.role() = 'authenticated');
 
 -- ================================================================
 -- Siguiente paso manual:
