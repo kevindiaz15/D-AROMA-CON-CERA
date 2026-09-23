@@ -136,6 +136,37 @@ create policy "solicitudes_admin_delete"
   on public.solicitudes for delete
   using (auth.role() = 'authenticated');
 
+-- 6) CONTROL DE SPAM (refuerzo a nivel de base de datos)
+-- Rechaza solicitudes con datos sospechosos o ráfagas de bots.
+create or replace function public.solicitudes_anti_spam()
+returns trigger
+language plpgsql
+as $$
+begin
+  -- Toda solicitud real de la tienda genera su mensaje de WhatsApp
+  if new.mensaje_wa is null or length(trim(new.mensaje_wa)) < 20 then
+    raise exception 'Solicitud no válida';
+  end if;
+  -- Nombre mínimo y sin HTML/URLs
+  if new.nombre is null or length(trim(new.nombre)) < 2 then
+    raise exception 'Nombre no válido';
+  end if;
+  if position('<' in new.nombre) > 0 or position('http' in lower(new.nombre)) > 0 then
+    raise exception 'Nombre no válido';
+  end if;
+  -- Límite de ráfaga: máximo 12 solicitudes en la última hora
+  if (select count(*) from public.solicitudes where created_at > now() - interval '1 hour') >= 12 then
+    raise exception 'Demasiadas solicitudes en poco tiempo';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_solicitudes_anti_spam on public.solicitudes;
+create trigger trg_solicitudes_anti_spam
+  before insert on public.solicitudes
+  for each row execute function public.solicitudes_anti_spam();
+
 -- ================================================================
 -- Siguiente paso manual:
 --   Authentication → Users → Add user (email + contraseña del admin)

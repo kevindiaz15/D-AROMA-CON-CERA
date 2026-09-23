@@ -440,6 +440,7 @@ function abrirSolicitudPedido(){
   }
   cerrarPedido();
   document.getElementById('orderForm').reset();
+  document.getElementById('orderForm')._abierto = Date.now();
   document.getElementById('orderSuccess').classList.remove('show');
   document.getElementById('orderFormView').style.display='';
   document.querySelectorAll('.field .msg').forEach(m=>m.classList.remove('show'));
@@ -474,6 +475,24 @@ function campoError(id, cond){
 }
 function validarEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
+/* =============================================================== */
+/* ANTI-SPAM                                                       */
+/* Devuelve: 'ok'   → enviar normal                                */
+/*           'spam' → bot detectado (honeypot o envío instantáneo) */
+/*           'again'→ muy seguido para un humano (cooldown)        */
+/* =============================================================== */
+const ANTI_KEY = 'daroma_anti_spam_2';
+function antiSpam(form){
+  const hp = form.querySelector('.hp-field');
+  if(hp && hp.value.trim() !== '') return 'spam';
+  const desde = form._abierto || 0;
+  if(desde && (Date.now() - desde) < 3500) return 'spam';
+  const last = parseInt(localStorage.getItem(ANTI_KEY)||'0', 10);
+  if(Date.now() - last < 60000) return 'again';
+  localStorage.setItem(ANTI_KEY, String(Date.now()));
+  return 'ok';
+}
+
 document.getElementById('orderForm').addEventListener('submit', function(e){
   e.preventDefault();
   let ok = true;
@@ -484,6 +503,16 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
   ok = !campoError('oDireccion', document.getElementById('oDireccion').value.trim().length>=4) && ok;
   ok = !campoError('oFecha', !!document.getElementById('oFecha').value) && ok;
   if(!ok){ toast('Revisa los campos marcados','warn'); return; }
+
+  const proteccion = antiSpam(this);
+  if(proteccion !== 'ok'){
+    if(proteccion === 'again'){ toast('Ya enviaste una solicitud recientemente. Te contactaremos pronto.','warn'); return; }
+    /* 'spam': simular éxito sin generar WhatsApp ni guardar nada */
+    document.getElementById('orderFormView').style.display='none';
+    document.getElementById('orderSuccess').classList.add('show');
+    toast('¡Solicitud recibida con éxito!','success');
+    return;
+  }
 
   const nombre = document.getElementById('oNombre').value.trim();
   const fecha = new Date(document.getElementById('oFecha').value + 'T12:00:00');
@@ -537,6 +566,17 @@ document.getElementById('quoteForm').addEventListener('submit', function(e){
   ok = !campoError('qFecha', !!document.getElementById('qFecha').value) && ok;
   ok = !campoError('qCantidad', parseInt(document.getElementById('qCantidad').value)>0) && ok;
   if(!ok){ toast('Revisa los campos marcados','warn'); return; }
+
+  const proteccion = antiSpam(this);
+  if(proteccion !== 'ok'){
+    if(proteccion === 'again'){ toast('Ya enviaste una solicitud recientemente. Te contactaremos pronto.','warn'); return; }
+    /* 'spam': simular éxito sin generar WhatsApp ni guardar nada */
+    this.style.display='none';
+    document.getElementById('quoteSuccess').classList.add('show');
+    document.getElementById('quoteSuccess').scrollIntoView({behavior:'smooth',block:'center'});
+    toast('¡Gracias por tu solicitud!','success');
+    return;
+  }
 
   let msg = 'Hola, D\'AROMA CON CERA.\n\nQuiero solicitar una cotización.\n\n'+
     'Nombre: '+document.getElementById('qNombre').value.trim()+
@@ -644,6 +684,7 @@ document.addEventListener('keydown', e=>{
 async function init(){
   try{
     sb = await clienteSupabase();
+    document.getElementById('quoteForm')._abierto = Date.now();
     productosDB = await cargarProductos();
     productosById = new Map(productosDB.map(p=>[String(p.id), p]));
     renderCategorias();
