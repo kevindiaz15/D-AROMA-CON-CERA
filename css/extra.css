@@ -1,0 +1,75 @@
+/* =============================================================== */
+/* D'AROMA CON CERA · Estilos complementarios                      */
+/* Fotos reales de producto, promociones y acceso administrador    */
+/* =============================================================== */
+
+/* ---------- Fotos reales en tarjetas ---------- */
+.product-card .art{padding:0;}
+.product-card .art img,
+.product-card .art .art-img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:transform .5s;
+}
+.product-card:hover .art img,
+.product-card:hover .art .art-img{transform:none;}
+.art-placeholder{
+  display:grid;place-items:center;font-size:2.8rem;color:#fff;
+  opacity:.85;text-shadow:0 6px 18px rgba(2,2,9,.3);
+}
+.art .tag.promo{
+  background:linear-gradient(135deg,var(--fucsia),var(--magenta));
+  color:#fff;box-shadow:0 4px 12px rgba(237,86,145,.35);
+}
+
+/* ---------- Precio con descuento ---------- */
+.price-pill{white-space:nowrap;display:inline-flex;align-items:baseline;gap:.3rem;}
+.price-pill.promo{background:linear-gradient(135deg,var(--fucsia),var(--magenta));}
+.p-old{
+  text-decoration:line-through;opacity:.75;
+  font-size:80%;font-weight:500;margin-right:.1rem;
+}
+.price-pill .p-old{font-weight:600;}
+.pm-price .p-old{font-size:.95rem;color:#8a86a4;margin-right:.45rem;}
+.sub .p-old{font-size:.75rem;color:#8a86a4;}
+
+/* ---------- Modal: cabecera con foto ---------- */
+.product-modal-head img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+}
+.product-modal-head .pm-placeholder{
+  font-size:3.2rem;color:#fff;opacity:.85;
+}
+
+/* ---------- Drawer: miniatura con foto ---------- */
+.cart-item .thumb{overflow:hidden;}
+.cart-item .thumb img{
+  width:100%;height:100%;object-fit:cover;
+}
+.cart-item .thumb i{font-size:1.35rem;color:#fff;opacity:.85;}
+
+/* ---------- Galería ---------- */
+.gal-item img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  transition:transform .6s;
+}
+.gal-item:hover img{transform:scale(1.18);}
+.gal-item span{z-index:1;}
+
+/* ---------- About: logo ---------- */
+.about-logo{
+  width:180px;max-width:78%;
+  animation:flotar 5s ease-in-out infinite;
+}
+
+/* ---------- Acceso administrador (footer) ---------- */
+.admin-link{
+  display:inline-grid;place-items:center;
+  width:34px;height:34px;border-radius:12px;
+  background:var(--humo);color:#b4aed0;
+  font-size:.8rem;margin-left:.7rem;vertical-align:middle;
+  transition:.3s;border:1px solid #efeafc;
+}
+.admin-link:hover{background:var(--fucsia);color:#fff;transform:translateY(-2px);}
+
+/* ---------- Cargando/catálogo vacío ---------- */
+.grid-products.empty{display:none;}
