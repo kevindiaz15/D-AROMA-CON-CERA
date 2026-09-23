@@ -681,15 +681,6 @@ section{scroll-margin-top:90px;position:relative;}
 }
 .howto-row-a .howto-cell:not(:last-child)::after{content:'\f054';right:-29px;}
 .howto-row-b .howto-cell:not(:first-child)::before{content:'\f053';left:-29px;}
-.howto-drop{
-  display:flex;flex-direction:column;align-items:center;align-self:flex-end;
-  margin-right:calc((100% - 4rem)/6);margin-top:-.4rem;
-}
-.howto-drop .howto-drop-line{width:2px;height:34px;border-left:2px dashed rgba(181,70,213,.5);}
-.howto-drop i{
-  width:28px;height:28px;border-radius:50%;background:#fff;color:var(--fucsia);
-  display:grid;place-items:center;font-size:.7rem;box-shadow:0 4px 12px rgba(181,70,213,.25);
-}
 
 /* Caja final de dudas */
 .howto-cta{
@@ -721,14 +712,12 @@ section{scroll-margin-top:90px;position:relative;}
   }
   .howto-card{position:relative;width:94%;margin-left:auto;background:rgba(255,255,255,.88);}
   .howto-num{opacity:.35;}
-  .howto-drop{display:none;}
 }
 @media(min-width:641px) and (max-width:900px){
   .howto-row{grid-template-columns:1fr 1fr;}
   .howto-row .howto-cell:nth-child(3){grid-column:1/-1;}
   .howto-row-a .howto-cell:not(:last-child)::after{display:none;}
   .howto-row-b .howto-cell:not(:first-child)::before{display:none;}
-  .howto-drop{display:none;}
 }
 
 /* ========================================================= */
