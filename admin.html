@@ -35,42 +35,49 @@
 </div>
 
 <!-- ============ DASHBOARD ============ -->
-<div id="dashView" class="view hidden">
-  <header class="adm-head">
-    <div class="adm-brand">
-      <img src="Nueva%20carpeta/Logosuperior-removebg.png" alt="logo">
-      <span><b>D'AROMA</b> CON CERA · Admin</span>
-    </div>
-    <div class="adm-actions">
-      <a class="btn-shell" href="index.html" target="_blank"><i class="fa-solid fa-store"></i> Ver tienda</a>
-      <button class="btn-shell" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
-    </div>
-  </header>
-
-  <main class="adm-main">
-    <div class="adm-top">
-      <div>
-        <h1>Productos</h1>
-        <p class="sub">Estos productos se muestran en la tienda online</p>
+<div id="dashView" class="view dashview hidden">
+  <div class="dash-grid">
+    <aside class="adm-nav">
+      <div class="nav-brand">
+        <img src="Nueva%20carpeta/Logosuperior-removebg.png" alt="logo">
+        <span><b>D'AROMA</b><small>CON CERA · Admin</small></span>
       </div>
-      <button class="btn primary" id="btnNuevo"><i class="fa-solid fa-plus"></i> Nuevo producto</button>
-    </div>
 
-    <div class="stats" id="stats"></div>
+      <nav class="nav-links">
+        <a class="nav-link active" href="#productos" title="Productos"><i class="fa-solid fa-candles"></i><span>Productos</span></a>
+        <a class="nav-link" href="index.html" target="_blank" title="Ver tienda"><i class="fa-solid fa-store"></i><span>Ver tienda</span></a>
+      </nav>
 
-    <div class="adm-toolbar">
-      <div class="search">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="admSearch" placeholder="Buscar por nombre, aroma o descripción…">
+      <div class="nav-foot">
+        <button class="nav-link" id="btnLogout" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesión</span></button>
       </div>
-      <select id="admFiltroCat"></select>
-    </div>
+    </aside>
 
-    <div class="adm-list" id="admList"></div>
-    <div class="empty-adm hidden" id="admEmpty">No hay productos con esos filtros.</div>
+    <main class="adm-main" id="productos">
+      <div class="adm-top">
+        <div>
+          <h1>Productos</h1>
+          <p class="sub">Estos productos se muestran en la tienda online</p>
+        </div>
+        <button class="btn primary" id="btnNuevo"><i class="fa-solid fa-plus"></i> Nuevo producto</button>
+      </div>
 
-    <p class="hint"><i class="fa-solid fa-circle-info"></i> Consejo: deja el precio vacío para mostrar "Consultar" en la tienda. Las promos se activan solas según las fechas que definas.</p>
-  </main>
+      <div class="stats" id="stats"></div>
+
+      <div class="adm-toolbar">
+        <div class="search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="admSearch" placeholder="Buscar por nombre, aroma o descripción…">
+        </div>
+        <select id="admFiltroCat"></select>
+      </div>
+
+      <div class="adm-list" id="admList"></div>
+      <div class="empty-adm hidden" id="admEmpty">No hay productos con esos filtros.</div>
+
+      <p class="hint"><i class="fa-solid fa-circle-info"></i> Consejo: deja el precio vacío para mostrar "Consultar" en la tienda. Las promos se activan solas según las fechas que definas.</p>
+    </main>
+  </div>
 </div>
 
 <!-- ============ FORMULARIO MODAL ============ -->

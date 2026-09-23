@@ -125,7 +125,7 @@ function renderLista(){
         precios+
       '</div>'+
       '<div class="acc">'+
-        '<label class="switch'+(p.activo?' live':'')+'" title="Activo en tienda"><input type="checkbox" '+(p.activo?'checked':'')+' '+attrEvt('onchange','toggleActivo('+JSON.stringify(String(p.id))+',this)')+'><i class="fa-solid fa-eye'+(p.activo?'':' low-vision')+'"></i></label>'+
+        '<label class="switch'+(p.activo?' live':'')+'" title="'+(p.activo?'Activo en tienda':'Oculto de la tienda')+'"><input type="checkbox" '+(p.activo?'checked':'')+' '+attrEvt('onchange','toggleActivo('+JSON.stringify(String(p.id))+',this)')+'><i class="fa-solid '+(p.activo?'fa-eye':'fa-eye-slash')+'"></i></label>'+
         '<button title="Editar" '+attrClick('abrirForm('+JSON.stringify(String(p.id))+')')+'><i class="fa-solid fa-pen"></i></button>'+
         '<button title="Eliminar" class="del" '+attrClick('eliminarProducto('+JSON.stringify(String(p.id))+')')+'><i class="fa-solid fa-trash-can"></i></button>'+
       '</div>'+
