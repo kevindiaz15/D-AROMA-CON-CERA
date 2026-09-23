@@ -43,7 +43,7 @@ function precioInfo(p){
 
 /* ---------- Supabase ---------- */
 function clienteSupabase(){
-  return import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2')
+  return import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
     .then(m => m.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key));
 }
 
