@@ -477,12 +477,12 @@ function validarEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 document.getElementById('orderForm').addEventListener('submit', function(e){
   e.preventDefault();
   let ok = true;
-  ok = campoError('oNombre', document.getElementById('oNombre').value.trim().length>=2) && ok;
-  ok = campoError('oWhats', /^[0-9]{7,12}$/.test((document.getElementById('oWhats').value||'').replace(/[^0-9]/g,''))) && ok;
-  ok = campoError('oCorreo', validarEmail(document.getElementById('oCorreo').value.trim())) && ok;
-  ok = campoError('oCiudad', document.getElementById('oCiudad').value.trim().length>=2) && ok;
-  ok = campoError('oDireccion', document.getElementById('oDireccion').value.trim().length>=4) && ok;
-  ok = campoError('oFecha', !!document.getElementById('oFecha').value) && ok;
+  ok = !campoError('oNombre', document.getElementById('oNombre').value.trim().length>=2) && ok;
+  ok = !campoError('oWhats', /^[0-9]{7,12}$/.test((document.getElementById('oWhats').value||'').replace(/[^0-9]/g,''))) && ok;
+  ok = !campoError('oCorreo', validarEmail(document.getElementById('oCorreo').value.trim())) && ok;
+  ok = !campoError('oCiudad', document.getElementById('oCiudad').value.trim().length>=2) && ok;
+  ok = !campoError('oDireccion', document.getElementById('oDireccion').value.trim().length>=4) && ok;
+  ok = !campoError('oFecha', !!document.getElementById('oFecha').value) && ok;
   if(!ok){ toast('Revisa los campos marcados','warn'); return; }
 
   const nombre = document.getElementById('oNombre').value.trim();
@@ -530,12 +530,12 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
 document.getElementById('quoteForm').addEventListener('submit', function(e){
   e.preventDefault();
   let ok = true;
-  ok = campoError('qNombre', document.getElementById('qNombre').value.trim().length>=2) && ok;
-  ok = campoError('qWhats', /^[0-9]{7,12}$/.test((document.getElementById('qWhats').value||'').replace(/[^0-9]/g,''))) && ok;
-  ok = campoError('qCorreo', validarEmail(document.getElementById('qCorreo').value.trim())) && ok;
-  ok = campoError('qEvento', !!document.getElementById('qEvento').value) && ok;
-  ok = campoError('qFecha', !!document.getElementById('qFecha').value) && ok;
-  ok = campoError('qCantidad', parseInt(document.getElementById('qCantidad').value)>0) && ok;
+  ok = !campoError('qNombre', document.getElementById('qNombre').value.trim().length>=2) && ok;
+  ok = !campoError('qWhats', /^[0-9]{7,12}$/.test((document.getElementById('qWhats').value||'').replace(/[^0-9]/g,''))) && ok;
+  ok = !campoError('qCorreo', validarEmail(document.getElementById('qCorreo').value.trim())) && ok;
+  ok = !campoError('qEvento', !!document.getElementById('qEvento').value) && ok;
+  ok = !campoError('qFecha', !!document.getElementById('qFecha').value) && ok;
+  ok = !campoError('qCantidad', parseInt(document.getElementById('qCantidad').value)>0) && ok;
   if(!ok){ toast('Revisa los campos marcados','warn'); return; }
 
   let msg = 'Hola, D\'AROMA CON CERA.\n\nQuiero solicitar una cotización.\n\n'+
